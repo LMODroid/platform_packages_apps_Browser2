@@ -33,6 +33,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.webkit.GeolocationPermissions;
 import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -210,13 +211,15 @@ public class WebViewBrowserActivity extends Activity implements PopupMenu.OnMenu
             }
 
             @Override
-            public boolean shouldOverrideUrlLoading(WebView webView, String url) {
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                String url = request.getUrl().toString();
                 // "about:" and "chrome:" schemes are internal to Chromium;
                 // don't want these to be dispatched to other apps.
                 if (url.startsWith("about:") || url.startsWith("chrome:")) {
                     return false;
                 }
-                return startBrowsingIntent(WebViewBrowserActivity.this, url);
+                boolean allowLaunchingApps = request.hasGesture() || request.isRedirect();
+                return startBrowsingIntent(WebViewBrowserActivity.this, url, allowLaunchingApps);
             }
 
             @Override
@@ -458,7 +461,8 @@ public class WebViewBrowserActivity extends Activity implements PopupMenu.OnMenu
             + ")"
             + "(.*)");
 
-    private static boolean startBrowsingIntent(Context context, String url) {
+    private static boolean startBrowsingIntent(Context context, String url,
+            boolean allowLaunchingApps) {
         Intent intent;
         // Perform generic parsing of the URI to turn it into an Intent.
         try {
@@ -488,7 +492,9 @@ public class WebViewBrowserActivity extends Activity implements PopupMenu.OnMenu
         // same application can be opened in the same tab.
         intent.putExtra(Browser.EXTRA_APPLICATION_ID, context.getPackageName());
         try {
-            context.startActivity(intent);
+            if (allowLaunchingApps) {
+                context.startActivity(intent);
+            }
             return true;
         } catch (ActivityNotFoundException ex) {
             Log.w(TAG, "No application can handle " + url);
