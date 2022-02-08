@@ -71,10 +71,6 @@
             android:exported="true"
             android:windowSoftInputMode="adjustResize"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|density">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
             <!-- Catch intents which do not specify a MIME type -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
